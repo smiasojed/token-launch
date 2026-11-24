@@ -1,0 +1,123 @@
+fork of Asset Hub Polkadot, spec 2006000, scenario no-precreate; custody 13UVJyLnbVp84aQVa1MzzQEZ19NrLKTKKsvz8MueHA3rb3L6, seller 13UVJyLnbVp84aQVa1uKYC6JfKLVVo7oQYMNzzi348u3j3yu, sink 13UVJyLnbVp84aQVa1uKnV8pLK4UVkb5FNyM67gdFR4AFRag, pool 1ZHC95RcT9nMn3AQmqKGGHotaF74xD6LqZA8J2bVg9PcheE
+
+[referendum] A. create JAMKB: Ok (219 bytes)
+    PASS  A. create JAMKB enacted
+    PASS  the cap is in custody and is the whole supply
+    PASS  custody holds all four asset roles
+
+[referendum] B. launch (seed + start): Ok (564 bytes)
+    Scheduler.Scheduled {'when': 34021189, 'index': 0}
+    PASS  B. launch (seed + start) enacted
+    PASS  the pool exists after the launch
+    PASS  pool seeded: 50,000 DOT / 500,000 JAMKB
+    PASS  the whole pool share is held by the pool account; the seller holds none
+    PASS  the seller holds the tranche
+    PASS  the sale is scheduled
+    PASS  submit.py's referendum is on the Root track with the proposal's hash and length
+
+[sale @relay 34021203] Ok: burned 150 DOT, sold 1,518.164 JAMKB, pool price 0.09880
+    PASS  period 1: burned exactly X, sold at most Y
+    PASS  period 1: total issuance fell by the burn (net of the block's mints)
+    PASS  period 1: the sink is reaped
+
+[sale @relay 34021211] Ok: burned 150 DOT, sold 1,527.369 JAMKB, pool price 0.09821
+    PASS  period 2: burned exactly X, sold at most Y
+    PASS  period 2: total issuance fell by the burn (net of the block's mints)
+    PASS  period 2: the sink is reaped
+
+[referendum] C. change X to 100 DOT: Ok (251 bytes)
+    Scheduler.Canceled {'when': 34021223, 'index': 0}
+    Scheduler.Scheduled {'when': 34021221, 'index': 0}
+    PASS  C. change X to 100 DOT enacted
+
+[sale @relay 34021227] Ok: burned 100 DOT, sold 1,029.644 JAMKB, pool price 0.09722
+    PASS  after the change each period burns the new X
+
+[referendum] holder grant to Alice (market stand-in): Ok (80 bytes)
+    PASS  holder grant to Alice (market stand-in) enacted
+
+Alice dumped JAMKB: price 0.00621, floor 0.08
+
+[sale @relay 34021251] AssetConversion.ProvidedMaximumNotSufficientForSwap: burned 0 DOT, sold 0 JAMKB, pool price 0.00621
+    PASS  below the floor the run fails and nothing is burned
+    PASS  the task stays scheduled after a failed run
+
+Alice bought back: price 0.11911
+
+[sale @relay 34021259] Ok: burned 100 DOT, sold 843.617 JAMKB, pool price 0.11868
+    PASS  above the floor the sale resumes
+
+[sale @relay 34021267] Ok: burned 100 DOT, sold 846.718 JAMKB, pool price 0.11824
+    PASS  DOT sent to the sink: the burn is still X, the extra stays in the sink
+
+[referendum] D. top up: Ok (79 bytes)
+    Scheduler.Scheduled {'when': 34021279, 'index': 0}
+    PASS  D. top up enacted
+    PASS  the seller got the top-up
+
+[referendum] E. stop: Ok (113 bytes)
+    Scheduler.Canceled {'when': 34021287, 'index': 0}
+    PASS  E. stop enacted
+    PASS  the task is cancelled
+    PASS  the unsold 287,414.093 JAMKB returned to custody
+    PASS  no sale after the stop
+
+[referendum] F. top up and start a sale with count 2: Ok (294 bytes)
+    Scheduler.Scheduled {'when': 34021321, 'index': 0}
+    PASS  F. top up and start a sale with count 2 enacted
+
+[sale @relay 34021327] Ok: burned 150 DOT, sold 1,285.371 JAMKB, pool price 0.11672
+
+[sale @relay 34021335] Ok: burned 150 DOT, sold 1,292.523 JAMKB, pool price 0.11608
+    PASS  count 2 runs the sale exactly 2 times (ran 2)
+    PASS  the task is gone after its last run
+    PASS  the seller still holds JAMKB before the stop tests
+
+[referendum] G. stop in batch_all once the task is gone: Scheduler.NotFound (113 bytes)
+    PASS  G. stop in batch_all once the task is gone fails with Scheduler.NotFound (got Scheduler.NotFound)
+    PASS  batch_all failed whole: nothing returned
+
+[referendum] H. stop in force_batch once the task is gone: Ok (113 bytes)
+    failed item: Scheduler.NotFound
+    PASS  H. stop in force_batch once the task is gone enacted
+    PASS  force_batch returns the tranche; only the cancel failed
+
+[referendum] I1. start a sale with a long period: Ok (212 bytes)
+    Scheduler.Scheduled {'when': 34021616, 'index': 0}
+    PASS  I1. start a sale with a long period enacted
+
+[referendum] I2. change while every near agenda is full: Exhausted (252 bytes)
+    PASS  I2. change while every near agenda is full fails with Exhausted (got Exhausted)
+    PASS  the cancel was reverted: the old sale is still scheduled
+
+[referendum] I3. cancel the test sale: Ok (37 bytes)
+    Scheduler.Canceled {'when': 34021616, 'index': 0}
+    PASS  I3. cancel the test sale enacted
+
+[referendum] J1. start a sale: Ok (212 bytes)
+    Scheduler.Scheduled {'when': 34021453, 'index': 0}
+    PASS  J1. start a sale enacted
+#0: run: Assets.NoAccount; burned 0 DOT; pool price 0.11608; seller holds 0 JAMKB; next run NONE
+#0: run: Assets.NoAccount; burned 0 DOT; pool price 0.11608; seller holds 0 JAMKB; next run NONE
+    PASS  a full agenda at the next slot drops the sale for good (PeriodicFailed)
+    PASS  the monitor alerts on the drop
+
+[referendum] J2. change re-creates the dropped sale: Ok (252 bytes)
+    failed item: Scheduler.NotFound
+    Scheduler.Scheduled {'when': 34021469, 'index': 0}
+    PASS  J2. change re-creates the dropped sale enacted
+    PASS  change tolerates the missing task and schedules it again
+
+[referendum] J3. cancel the test sale: Ok (37 bytes)
+    Scheduler.Canceled {'when': 34021479, 'index': 0}
+    PASS  J3. cancel the test sale enacted
+
+[referendum] K. unwind: Ok (317 bytes)
+    failed item: Scheduler.NotFound
+    PASS  K. unwind enacted
+    pool 53,995.2275068881 DOT / 465,163.801 JAMKB -> 5.3995227507 DOT / 46.517 JAMKB; 465,117.284 JAMKB to custody, 53,991.0157241374 DOT to the treasury
+    PASS  the pool share is burned down to 1/10000; the pool keeps only a small rest
+    seller left with 0.01 DOT free, 0.40032 DOT held
+    PASS  the pool's JAMKB went to custody, its DOT and the seller's free DOT to the treasury
+
+ALL CHECKS PASSED

@@ -1,0 +1,18 @@
+fork of Asset Hub Polkadot, spec 2006000, scenario liquidity-first; custody 13UVJyLnbVp84aQVa1MzzQEZ19NrLKTKKsvz8MueHA3rb3L6, seller 13UVJyLnbVp84aQVa1uKYC6JfKLVVo7oQYMNzzi348u3j3yu, sink 13UVJyLnbVp84aQVa1uKnV8pLK4UVkb5FNyM67gdFR4AFRag, pool 1ZHC95RcT9nMn3AQmqKGGHotaF74xD6LqZA8J2bVg9PcheE
+
+[referendum] A. create JAMKB: Ok (219 bytes)
+    PASS  A. create JAMKB enacted
+    PASS  the cap is in custody and is the whole supply
+    PASS  custody holds all four asset roles
+
+[referendum] holder grant to Alice: Ok (79 bytes)
+    PASS  holder grant to Alice enacted
+    PASS  someone created the pool; the derived pool account is the chain's
+
+Alice seeded the pool first at price 0.20000
+
+[referendum] B. launch over a pool seeded at another price: AssetConversion.AssetTwoDepositDidNotMeetMinimum (564 bytes)
+    PASS  B. launch over a pool seeded at another price fails with AssetConversion.AssetOneDepositDidNotMeetMinimum or AssetConversion.AssetTwoDepositDidNotMeetMinimum (got AssetConversion.AssetTwoDepositDidNotMeetMinimum)
+    PASS  nothing moved: no DOT left the treasury, the seller holds nothing, no sale scheduled
+
+ALL CHECKS PASSED

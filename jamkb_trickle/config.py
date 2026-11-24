@@ -2,7 +2,7 @@
 
 import json
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import ROUND_DOWN, Decimal
 
 from scalecodec.utils.ss58 import ss58_encode
 
@@ -17,6 +17,10 @@ from .encoding import (
 )
 
 SS58_POLKADOT = 0
+
+# Some PalletIds in use on Asset Hub. Not a complete list: `account_seed` must differ from every
+# pallet's PalletId, including the one `pallet-jamkb` will use.
+KNOWN_PALLET_IDS = {"py/trsry", "py/ascon", "py/astrd"}
 
 
 def addr(account_id: bytes) -> str:
@@ -41,6 +45,7 @@ class Config:
     raw: dict
     rpc: str
     tested_spec_version: int
+    genesis_hash: str
     asset_id: int
     asset_name: str
     asset_symbol: str
@@ -69,7 +74,11 @@ def load(path: str) -> Config:
     s = c["sale"]
     x = planks(s["dot_per_period"], DOT_DECIMALS)
     floor = Decimal(s["floor_dot_per_jamkb"])
-    y_jamkb = (Decimal(s["dot_per_period"]) / floor).quantize(Decimal(1) / 10**JAMKB_DECIMALS)
+    if floor <= 0:
+        raise ValueError("sale.floor_dot_per_jamkb must be above zero")
+    # Rounded down, so the effective floor X / Y is never below the stated one.
+    y_jamkb = (Decimal(s["dot_per_period"]) / floor).quantize(
+        Decimal(1) / 10**JAMKB_DECIMALS, rounding=ROUND_DOWN)
     sale = Sale(
         task_name=s["task_name"],
         task_id=task_id(s["task_name"]),
@@ -82,10 +91,11 @@ def load(path: str) -> Config:
         after=int(s["after_relay_blocks"]),
     )
     a = c["asset"]
-    return Config(
+    cfg = Config(
         raw=c,
         rpc=c["rpc"],
         tested_spec_version=int(c["tested_spec_version"]),
+        genesis_hash=c["genesis_hash"],
         asset_id=int(a["id"]),
         asset_name=a["name"],
         asset_symbol=a["symbol"],
@@ -106,6 +116,34 @@ def load(path: str) -> Config:
         sale=sale,
         use_pallet_jamkb=bool(c.get("use_pallet_jamkb", False)),
     )
+    validate(cfg, seed)
+    return cfg
+
+
+def validate(cfg: Config, seed: str):
+    """Rejects a config that would build a proposal that cannot work."""
+    s = cfg.sale
+    problems = []
+    if seed in KNOWN_PALLET_IDS:
+        problems.append(f"account_seed {seed!r} is the PalletId of a pallet")
+    for name in ("cap", "custody_dot", "seed_dot", "seed_jamkb", "seed_min_dot",
+                 "seed_min_jamkb", "seller_dot_extra", "tranche_jamkb", "topup_jamkb"):
+        if getattr(cfg, name) <= 0:
+            problems.append(f"{name} must be above zero")
+    if cfg.seed_min_dot > cfg.seed_dot or cfg.seed_min_jamkb > cfg.seed_jamkb:
+        problems.append("seed minimums must not exceed the seed")
+    if s.dot_per_period <= 0 or s.max_jamkb_per_period <= 0:
+        problems.append("dot_per_period and its Y must be above zero")
+    if s.period <= 0:
+        problems.append("period_relay_blocks must be above zero")
+    if s.count < 2:
+        problems.append("count must be at least 2; the scheduler runs a count of 0 or 1 once")
+    if not 0 <= s.priority <= 255:
+        problems.append("priority must be 0..255")
+    if s.after < 0:
+        problems.append("after_relay_blocks must not be negative")
+    if problems:
+        raise ValueError("invalid config: " + "; ".join(problems))
 
 
 def fmt_dot(v: int) -> str:

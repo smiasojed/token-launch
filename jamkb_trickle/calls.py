@@ -110,16 +110,20 @@ class Calls:
 
     # ── Later referenda ─────────────────────────────────────────────────────────────────
 
+    def cancel_if_scheduled(self):
+        """`cancel_named` that tolerates a task already gone (its count ran out, or the
+        scheduler dropped it): the inner `force_batch` turns `NotFound` into an `ItemFailed`."""
+        return self.force_batch([
+            self.call("Scheduler", "cancel_named", id="0x" + self.c.sale.task_id.hex())])
+
     def change(self):
         """Replaces the schedule with the parameters in the config, under the same task id.
 
-        `force_batch`: `cancel_named` fails when the task is already gone, and the new
-        schedule must still be set.
+        `batch_all([force_batch([cancel]), schedule])`: a task that is gone does not fail the
+        referendum, and a schedule that fails (for example a full agenda) reverts the cancel,
+        so the old sale keeps running.
         """
-        return self.force_batch([
-            self.call("Scheduler", "cancel_named", id="0x" + self.c.sale.task_id.hex()),
-            self.schedule_sale(),
-        ])
+        return self.batch_all([self.cancel_if_scheduled(), self.schedule_sale()])
 
     def topup(self):
         return self.grant(self.c.seller, self.c.topup_jamkb)
@@ -146,7 +150,29 @@ class Calls:
                                                  dest=c.custody, keep_alive=False)),
         ])
 
-    def by_step(self, step: str):
+    def unwind(self, lp_burn: int):
+        """Stops the sale and takes the seed back out of the pool.
+
+        Burns `lp_burn` of the pool share held by the pool account; the pool must keep its
+        reserves at or above their minimum balances, so a small rest stays in the pool. The
+        DOT goes back to the treasury and the JAMKB to custody. All or nothing, except the
+        cancel of a task that is already gone.
+        """
+        c = self.c
+        dot, jamkb = dot_location(), jamkb_location(c.asset_id)
+        return self.batch_all([
+            self.cancel_if_scheduled(),
+            self.as_fallible(c.pool, self.call(
+                "AssetConversion", "remove_liquidity", asset1=dot, asset2=jamkb,
+                lp_token_burn=lp_burn, amount1_min_receive=1, amount2_min_receive=1,
+                withdraw_to=c.seller)),
+            self.as_fallible(c.seller, self.call("Assets", "transfer_all", id=c.asset_id,
+                                                 dest=c.custody, keep_alive=False)),
+            self.as_fallible(c.seller, self.call("Balances", "transfer_all", dest=c.treasury,
+                                                 keep_alive=False)),
+        ])
+
+    def by_step(self, step: str, **params):
         return {
             "create": self.create_jamkb,
             "seed": self.seed,
@@ -155,7 +181,8 @@ class Calls:
             "change": self.change,
             "topup": self.topup,
             "stop": self.stop,
+            "unwind": lambda: self.unwind(params["lp_burn"]),
         }[step]()
 
 
-STEPS = ["create", "seed", "start", "launch", "change", "topup", "stop"]
+STEPS = ["create", "seed", "start", "launch", "change", "topup", "stop", "unwind"]

@@ -2,6 +2,7 @@
   "_comment": "Same as polkadot.json, but against the local chopsticks fork and with a short period: chopsticks moves the relay number by 4 per Asset Hub block, so 8 relay blocks is a sale every second block.",
   "rpc": "ws://127.0.0.1:8000",
   "tested_spec_version": 2006000,
+  "genesis_hash": "0x68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
   "account_seed": "py/jkbtr",
   "use_pallet_jamkb": false,
   "asset": {
