@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+out/
+chopsticks/node_modules/
+chopsticks/package-lock.json
+chopsticks/db.sqlite*
+chopsticks/fork.log

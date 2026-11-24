@@ -1,0 +1,36 @@
+{
+  "_comment": "Asset Hub Polkadot. Amounts are decimal strings in DOT or JAMKB. The sale and seed values are EXAMPLES; the DAO decides them in the referendum.",
+  "rpc": "wss://polkadot-asset-hub-rpc.polkadot.io",
+  "tested_spec_version": 2006000,
+  "account_seed": "py/jkbtr",
+  "use_pallet_jamkb": false,
+  "asset": {
+    "id": 21000000,
+    "name": "JAMKB",
+    "symbol": "JAMKB",
+    "cap_jamkb": "21000000"
+  },
+  "custody_dot": "1",
+  "seed": {
+    "dot": "50000",
+    "jamkb": "500000",
+    "min_dot": "50000",
+    "min_jamkb": "500000"
+  },
+  "seller_dot_extra": "2",
+  "tranche_jamkb": "200000",
+  "topup_jamkb": "100000",
+  "sale": {
+    "task_name": "jamkb-trickle-1",
+    "dot_per_period": "150",
+    "floor_dot_per_jamkb": "0.08",
+    "period_relay_blocks": 2400,
+    "count": 180,
+    "priority": 200,
+    "after_relay_blocks": 1
+  },
+  "referendum": {
+    "track_origin": "Root",
+    "enactment_after_blocks": 14400
+  }
+}

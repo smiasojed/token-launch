@@ -1,0 +1,10 @@
+# A local fork of Asset Hub Polkadot at its latest block. Blocks are built only on request
+# (dev_newBlock), so the simulation controls every block.
+endpoint:
+  - wss://polkadot-asset-hub-rpc.polkadot.io
+  - wss://sys.ibp.network/asset-hub-polkadot
+mock-signature-host: true
+build-block-mode: Manual
+port: 8000
+db: ./db.sqlite
+runtime-log-level: 0

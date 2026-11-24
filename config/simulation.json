@@ -1,0 +1,36 @@
+{
+  "_comment": "Same as polkadot.json, but against the local chopsticks fork and with a short period: chopsticks moves the relay number by 4 per Asset Hub block, so 8 relay blocks is a sale every second block.",
+  "rpc": "ws://127.0.0.1:8000",
+  "tested_spec_version": 2006000,
+  "account_seed": "py/jkbtr",
+  "use_pallet_jamkb": false,
+  "asset": {
+    "id": 21000000,
+    "name": "JAMKB",
+    "symbol": "JAMKB",
+    "cap_jamkb": "21000000"
+  },
+  "custody_dot": "1",
+  "seed": {
+    "dot": "50000",
+    "jamkb": "500000",
+    "min_dot": "50000",
+    "min_jamkb": "500000"
+  },
+  "seller_dot_extra": "2",
+  "tranche_jamkb": "200000",
+  "topup_jamkb": "100000",
+  "sale": {
+    "task_name": "jamkb-trickle-1",
+    "dot_per_period": "150",
+    "floor_dot_per_jamkb": "0.08",
+    "period_relay_blocks": 8,
+    "count": 40,
+    "priority": 200,
+    "after_relay_blocks": 1
+  },
+  "referendum": {
+    "track_origin": "Root",
+    "enactment_after_blocks": 14400
+  }
+}

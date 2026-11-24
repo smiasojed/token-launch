@@ -1,0 +1,11 @@
+{
+  "name": "jamkb-trickle-fork",
+  "private": true,
+  "description": "Chopsticks fork of Asset Hub Polkadot for the JAMKB trickle simulation",
+  "scripts": {
+    "fork": "chopsticks --config ahp.yml"
+  },
+  "dependencies": {
+    "@acala-network/chopsticks": "1.5.2"
+  }
+}
